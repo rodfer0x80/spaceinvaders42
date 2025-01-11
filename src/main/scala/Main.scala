@@ -1,3 +1,5 @@
+package spaceinvaders42
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -8,125 +10,17 @@ import scalafx.scene.Scene
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.Rectangle
 import scalafx.scene.input.KeyCode
-import scalafx.scene.image.{Image, ImageView}
 import scalafx.scene.layout.Pane
+import scalafx.scene.Node
 
-// TODO: split into class files and folders and subfolders
-// TODO: add tests once prototype is finished before doing new features
+case class State(board: Board, player: Player, enemies: List[Enemy]) {
 
-case class Board(width: Double = 1000, height: Double = 1000) {
-  private val image = new Image(
-    getClass.getResourceAsStream("/view/background.png"),
-    width, // width
-    height, // height
-    true, // preserve ratio
-    true // smooth
-  )
-  val view = new ImageView(image) {
-    fitWidth = width
-    fitHeight = height
-    preserveRatio = true
-  }
-
-}
-
-sealed trait Entity {
-  val x: Double
-  val y: Double
-  val width: Double
-  val height: Double
-  val moveSpeed: Double
-
-  val rightHitbox: Double = x + width
-  val leftHitbox: Double = x
-  val bottomHitbox: Double = y + height
-  val topHitbox: Double = y
-}
-
-sealed trait Projectile extends Entity
-case class Bullet(
-    x: Double,
-    y: Double,
-    width: Double = 5,
-    height: Double = 15,
-    moveSpeed: Double = 20
-) extends Projectile
-//{
-//  private val image = new Image(getClass.getResourceAsStream("/view/bullet.jpg"))
-//  val view = new ImageView(image) {
-//    fitWidth = width
-//    fitHeight = height
-//    preserveRatio = true
-//  }
-//}
-
-case class Player(
-    x: Double = 200,
-    y: Double = 200,
-    width: Double = 50,
-    height: Double = 100,
-    moveSpeed: Double = 25,
-    bullets: List[Bullet] = Nil
-) extends Entity {
-  private val image = new Image(
-    getClass.getResourceAsStream("/view/player.png"),
-    width, // width
-    height, // height
-    false, // preserve ratio
-    true // smooth
-  )
-  val playerX: Double = x
-  val playerY: Double = y
-  println(s"($playerX, $playerY)")
-  val view: ImageView =
-    new ImageView(image) {
-      fitWidth = width
-      fitHeight = height
-      preserveRatio = true
-      layoutX = playerX
-      layoutY = playerY
-    }
-}
-
-sealed trait Enemy extends Entity {
-  val bullets: List[Bullet]
-//  private val image = new Image(getClass.getResourceAsStream("/view/enemy.jpg"))
-//  val view = new ImageView(image) {
-//    fitWidth = width
-//    fitHeight = height
-//    preserveRatio = true
-//  }
-}
-
-// TODO: add imageView for Minions
-case class Minion(
-    x: Double,
-    y: Double,
-    width: Double = 20,
-    height: Double = 20,
-    moveSpeed: Double = 10,
-    bullets: List[Bullet] = Nil
-) extends Enemy
-
-// TODO: add imageView for Bosses
-case class Boss(
-    x: Double,
-    y: Double,
-    width: Double = 60,
-    height: Double = 60,
-    moveSpeed: Double = 10,
-    bullets: List[Bullet] = Nil
-) extends Enemy
-case class Enemies(fleet: List[Enemy])
-
-case class State(board: Board, player: Player, enemies: Enemies) {
-
-  // TODO: create a Collision class and move this logic there
+  // TODO: move collision logic to case classes
   def playerEnemiesCollision(
       player: Player,
-      enemies: Enemies
+      enemies: List[Enemy]
   ): Boolean = {
-    enemies.fleet.exists(enemy =>
+    enemies.exists(enemy =>
       val horizontalOverlap =
         player.leftHitbox < enemy.rightHitbox && player.rightHitbox > enemy.leftHitbox
       val verticalOverlap =
@@ -147,9 +41,9 @@ case class State(board: Board, player: Player, enemies: Enemies) {
 
   def playerBulletEnemiesCollision(
       playerBullet: Bullet,
-      enemies: Enemies
+      enemies: List[Enemy]
   ): Boolean = {
-    enemies.fleet.exists { enemy =>
+    enemies.exists { enemy =>
       val horizontalOverlap =
         playerBullet.leftHitbox < enemy.rightHitbox && playerBullet.rightHitbox > enemy.leftHitbox
       val verticalOverlap =
@@ -173,9 +67,9 @@ case class State(board: Board, player: Player, enemies: Enemies) {
 
   def enemiesBulletPlayerCollision(
       playerMovementUpdated: Player,
-      enemiesMovementUpdated: Enemies
+      enemiesMovementUpdated: List[Enemy]
   ): Boolean = {
-    enemiesMovementUpdated.fleet.exists { enemy =>
+    enemiesMovementUpdated.exists { enemy =>
       enemy.bullets.exists { bullet =>
         val horizontalOverlap =
           bullet.leftHitbox < playerMovementUpdated.rightHitbox && bullet.rightHitbox > playerMovementUpdated.leftHitbox
@@ -187,6 +81,7 @@ case class State(board: Board, player: Player, enemies: Enemies) {
   }
 
   // TODO: make state a class in a file and move logic there, only call for update state here
+  // TODO: move movement and shooting logic to case classes
   def updateState(distance: Int): State = {
     // Calculate player action
     val (
@@ -194,27 +89,27 @@ case class State(board: Board, player: Player, enemies: Enemies) {
       playerMovementY: Double,
       playerBullet: (Double, Double)
     ) = distance match {
-      case 1 => (player.x, player.y - player.moveSpeed, (0, 0))
-      case 2 => (player.x, player.y + player.moveSpeed, (0, 0))
-      case 3 => (player.x - player.moveSpeed, player.y, (0, 0))
-      case 4 => (player.x + player.moveSpeed, player.y, (0, 0))
+      case 1 => (player.x, player.y - player.speed, (0.0, 0.0))
+      case 2 => (player.x, player.y + player.speed, (0.0, 0.0))
+      case 3 => (player.x - player.speed, player.y, (0.0, 0.0))
+      case 4 => (player.x + player.speed, player.y, (0.0, 0.0))
       case 5 => (player.x, player.y, (player.x + player.width / 2, player.y))
-      case _ => (player.x, player.y, (0, 0))
+      case _ => (player.x, player.y, (0.0, 0.0))
     }
 
     // Win condition
-    if (enemies.fleet.isEmpty) {
+    if (enemies.isEmpty) {
       println("Victory")
       System.exit(0)
     }
 
     // Calculate player's bullets movement
-    val playerBulletsMovementUpdate = {
+    val playerBulletsMovementUpdated = {
       val updatedBullets: List[Bullet] = player.bullets.collect {
-        case bullet if bullet.y - bullet.moveSpeed >= 0 =>
-          Bullet(x = bullet.x, y = bullet.y - bullet.moveSpeed)
+        case bullet if bullet.y - bullet.speed >= 0 =>
+          Bullet(x = bullet.x, y = bullet.y - bullet.speed)
       }
-      if (playerBullet != (0, 0))
+      if (playerBullet != (0.0, 0.0))
         Bullet(playerBullet._1, playerBullet._2) :: updatedBullets
       else
         updatedBullets
@@ -225,33 +120,33 @@ case class State(board: Board, player: Player, enemies: Enemies) {
     val playerMovementUpdated: Player = Player(
       x = playerMovementX,
       y = playerMovementY,
-      bullets = playerBulletsMovementUpdate
+      bullets = playerBulletsMovementUpdated
     )
 
     // TODO: Calculate enemies movement
     val enemiesMovementUpdated = enemies
 
     // Calculate enemies collision with player bullets
-    val updatedEnemies: Enemies = Enemies(
-      enemiesMovementUpdated.fleet.collect {
+    val updatedEnemies: List[Enemy] =
+      enemiesMovementUpdated.collect {
         case minion
             if !enemyPlayerBulletsCollision(
-              playerBulletsMovementUpdate,
+              playerBulletsMovementUpdated,
               minion
             ) =>
           minion
         // TODO: bosses have more hitpoints
         case boss
             if !enemyPlayerBulletsCollision(
-              playerBulletsMovementUpdate,
+              playerBulletsMovementUpdated,
               boss
             ) =>
           boss
       }
-    )
+
     // Calculate player bullets' collision with enemies
     val updatedPlayerBullets: List[Bullet] =
-      playerBulletsMovementUpdate.collect {
+      playerBulletsMovementUpdated.collect {
         case playerBullet
             if !playerBulletEnemiesCollision(
               playerBullet,
@@ -296,72 +191,19 @@ case class State(board: Board, player: Player, enemies: Enemies) {
     State(board, updatedPlayer, updatedEnemies)
   }
 
-  def renderRectangle(
-      xRect: Double,
-      yRect: Double,
-      widthRect: Double,
-      heightRet: Double,
-      color: Color
-  ): Rectangle =
-    new Rectangle {
-      x = xRect
-      y = yRect
-      width = widthRect
-      height = heightRet
-      fill = color
-    }
-
-  def renderEntities: List[Rectangle] = {
-    val playerRect = renderRectangle(
-      player.x,
-      player.y,
-      player.width,
-      player.height,
-      Color.Blue
-    )
+  def renderEntities: List[Node] = {
+    val playerRect = player.render()
     val playerBulletsRects = player.bullets.map { bullet =>
-      renderRectangle(
-        bullet.x,
-        bullet.y,
-        bullet.width,
-        bullet.height,
-        Color.Blue
-      )
+      bullet.render()
     }
-    val playerRects = playerBulletsRects // playerRect :: playerBulletsRects
+    val playerRects = playerRect :: playerBulletsRects
 
-    val enemiesRects = enemies.fleet.flatMap {
-      case minion: Minion =>
-        val minionRect = renderRectangle(
-          minion.x,
-          minion.y,
-          minion.width,
-          minion.height,
-          Color.Red
-        )
-        val minionBullets = minion.bullets.map { bullet =>
-          renderRectangle(
-            bullet.x,
-            bullet.y,
-            bullet.width,
-            bullet.height,
-            Color.DarkRed
-          )
-        }
-        minionRect :: minionBullets
-      case boss: Boss =>
-        val bossRect =
-          renderRectangle(boss.x, boss.y, boss.width, boss.height, Color.Orange)
-        val bossBullets = boss.bullets.map { bullet =>
-          renderRectangle(
-            bullet.x,
-            bullet.y,
-            bullet.width,
-            bullet.height,
-            Color.DarkOrange
-          )
-        }
-        bossRect :: bossBullets
+    val enemiesRects = enemies.flatMap { enemy =>
+      val enemyRect = enemy.render()
+      val enemyBullets = enemy.bullets.map { bullet =>
+        bullet.render()
+      }
+      enemyRect :: enemyBullets
     }
 
     playerRects ::: enemiesRects
@@ -369,11 +211,11 @@ case class State(board: Board, player: Player, enemies: Enemies) {
 }
 
 // TODO; make this pure with cats IO
-object World extends JFXApp3 {
+object Main extends JFXApp3 {
   private def worldLoop(update: () => Unit): Unit =
     Future {
       update()
-      Thread.sleep(1000 / 25) // Run program at 25 fps
+      Thread.sleep(1000 / 25 * 2) // Run program at 25 fps
     }.flatMap(_ => Future(worldLoop(update)))
 
   override def start(): Unit = {
@@ -381,7 +223,7 @@ object World extends JFXApp3 {
     val player: Player = Player()
     val minion: Minion = Minion(x = 100, y = 100)
     val boss: Boss = Boss(x = 300, y = 100)
-    val enemies: Enemies = Enemies(fleet = List(boss, minion))
+    val enemies: List[Enemy] = List(boss, minion)
 
     val state = ObjectProperty(State(board, player, enemies))
     val frame = IntegerProperty(0)
@@ -398,23 +240,22 @@ object World extends JFXApp3 {
       scene = new Scene {
         fill = Color.Grey
         content = new Pane {
-          children = Seq(board.view) ++ Seq(state.value.player.view) ++ state.value.renderEntities
+          children = Seq(board.render()) ++ state.value.renderEntities
         }
         onKeyPressed = key =>
           key.code match {
-            case KeyCode.W     => distance.value = 1
-            case KeyCode.S     => distance.value = 2
-            case KeyCode.A     => distance.value = 3
-            case KeyCode.D     => distance.value = 4
-            case KeyCode.Space => distance.value = 5
-            case _             => ???
+            case KeyCode.W     => distance.value = 1 // up
+            case KeyCode.S     => distance.value = 2 // down
+            case KeyCode.A     => distance.value = 3 // left
+            case KeyCode.D     => distance.value = 4 // right
+            case KeyCode.Space => distance.value = 5 // fire
+            case _             => distance.value = 0 // nop
           }
 
         frame.onChange {
           Platform.runLater {
             content = new Pane {
-              children =
-                Seq(board.view) ++ Seq(state.value.player.view) ++ state.value.renderEntities
+              children = Seq(board.render()) ++ state.value.renderEntities
             }
           }
         }
