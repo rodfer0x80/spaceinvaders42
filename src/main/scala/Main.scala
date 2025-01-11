@@ -7,7 +7,6 @@ import scalafx.Includes.*
 import scalafx.application.{JFXApp3, Platform}
 import scalafx.beans.property.{IntegerProperty, ObjectProperty}
 import scalafx.scene.Scene
-import scalafx.scene.paint.Color
 import scalafx.scene.input.KeyCode
 import scalafx.scene.layout.Pane
 
@@ -32,7 +31,7 @@ object Main extends JFXApp3 {
     val distance = IntegerProperty(0) // Player starts standing still
 
     frame.onChange {
-      state.update(state.value.updateState(distance.value))
+      state.update(state.value.update(distance.value))
       distance.value = 0 // Stop player action
     }
 
@@ -40,9 +39,8 @@ object Main extends JFXApp3 {
       width = board.width
       height = board.height
       scene = new Scene {
-        fill = Color.Grey
         content = new Pane {
-          children = Seq(board.render()) ++ state.value.renderEntities
+          children = state.value.render
         }
         onKeyPressed = key =>
           key.code match {
@@ -57,7 +55,7 @@ object Main extends JFXApp3 {
         frame.onChange {
           Platform.runLater {
             content = new Pane {
-              children = Seq(board.render()) ++ state.value.renderEntities
+              children = state.value.render
             }
           }
         }

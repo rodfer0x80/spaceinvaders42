@@ -101,6 +101,7 @@ case class State(board: Board, player: Player, enemies: List[Enemy]) {
   }
 
   def render: List[Node] = {
+    val boardView = board.render()
     val playerView = player.render()
     val playerBulletsView = player.bullets.map { bullet =>
       bullet.render()
@@ -113,6 +114,6 @@ case class State(board: Board, player: Player, enemies: List[Enemy]) {
       }
       enemyView :: enemyBulletsView
     }
-    playerViews ::: enemiesViews
+    boardView :: playerViews ::: enemiesViews
   }
 }
