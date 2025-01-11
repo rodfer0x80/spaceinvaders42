@@ -5,46 +5,44 @@ import scalafx.scene.Node
 case class State(board: Board, player: Player, enemies: List[Enemy]) {
 
   def playerCollidesWithEnemy(
-                               player: Player,
-                               enemies: List[Enemy]
-                             ): Boolean = {
-    enemies.exists(enemy =>
-      player.collidesWith(enemy)
-    )
+      player: Player,
+      enemies: List[Enemy]
+  ): Boolean = {
+    enemies.exists(enemy => player.collidesWith(enemy))
   }
 
   def playerCollidesWithBorder(
-                                player: Player,
-                                board: Board
-                              ): Boolean = {
+      player: Player,
+      board: Board
+  ): Boolean = {
     player.x <= 0 ||
-      player.x >= board.width - player.width ||
-      player.y <= 0 ||
-      player.y >= board.height - player.height
+    player.x >= board.width - player.width ||
+    player.y <= 0 ||
+    player.y >= board.height - player.height
   }
 
   def playerBulletCollidesWithEnemy(
-                                     playerBullet: Bullet,
-                                     enemies: List[Enemy]
-                                   ): Boolean = {
+      playerBullet: Bullet,
+      enemies: List[Enemy]
+  ): Boolean = {
     enemies.exists { enemy =>
       playerBullet.collidesWith(enemy)
     }
   }
 
   def playerBulletsCollideWithEnemy(
-                                     playerBullets: List[Bullet],
-                                     enemy: Enemy
-                                   ): Boolean = {
+      playerBullets: List[Bullet],
+      enemy: Enemy
+  ): Boolean = {
     playerBullets.exists { playerBullet =>
       playerBullet.collidesWith(enemy)
     }
   }
 
   def enemiesBulletsCollideWithPlayer(
-                                       player: Player,
-                                       enemies: List[Enemy]
-                                     ): Boolean = {
+      player: Player,
+      enemies: List[Enemy]
+  ): Boolean = {
     enemies.exists { enemy =>
       enemy.bullets.exists { enemyBullet =>
         enemyBullet.collidesWith(player)
@@ -69,7 +67,8 @@ case class State(board: Board, player: Player, enemies: List[Enemy]) {
     val playerAfterAction: Player = player.action(playerActionCode)
 
     // Calculate player's bullets movement
-    val playerBulletsMovementUpdated: List[Bullet] = playerAfterAction.updateBullets()
+    val playerBulletsMovementUpdated: List[Bullet] =
+      playerAfterAction.updateBullets()
 
     // TODO: Calculate enemies' bullets movement
     val enemiesBulletsMovementUpdated: List[Bullet] = Nil
@@ -88,17 +87,17 @@ case class State(board: Board, player: Player, enemies: List[Enemy]) {
     val updatedEnemies: List[Enemy] =
       enemiesMovementUpdated.collect {
         case minion
-          if !playerBulletsCollideWithEnemy(
-            playerBulletsMovementUpdated,
-            minion
-          ) =>
+            if !playerBulletsCollideWithEnemy(
+              playerBulletsMovementUpdated,
+              minion
+            ) =>
           minion
         // TODO: bosses have more hitpoints
         case boss
-          if !playerBulletsCollideWithEnemy(
-            playerBulletsMovementUpdated,
-            boss
-          ) =>
+            if !playerBulletsCollideWithEnemy(
+              playerBulletsMovementUpdated,
+              boss
+            ) =>
           boss
       }
 
@@ -106,10 +105,10 @@ case class State(board: Board, player: Player, enemies: List[Enemy]) {
     val updatedPlayerBullets: List[Bullet] =
       playerBulletsMovementUpdated.collect {
         case playerBullet
-          if !playerBulletCollidesWithEnemy(
-            playerBullet,
-            enemiesMovementUpdated
-          ) =>
+            if !playerBulletCollidesWithEnemy(
+              playerBullet,
+              enemiesMovementUpdated
+            ) =>
           playerBullet
       }
 

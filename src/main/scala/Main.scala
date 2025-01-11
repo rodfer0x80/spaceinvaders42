@@ -13,7 +13,6 @@ import scalafx.scene.input.KeyCode
 import scalafx.scene.layout.Pane
 import scalafx.scene.Node
 
-
 // TODO; make this pure with cats IO
 object Main extends JFXApp3 {
   private def worldLoop(update: () => Unit): Unit =
