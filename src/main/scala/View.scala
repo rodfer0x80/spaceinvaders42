@@ -31,8 +31,8 @@ trait View {
     } else {
       val image = new Image(
         getClass.getResourceAsStream(resource),
-        width, // width
-        height, // height
+        width,
+        height,
         false, // preserve ratio
         true // smooth
       )

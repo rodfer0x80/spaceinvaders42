@@ -8,10 +8,8 @@ import scalafx.application.{JFXApp3, Platform}
 import scalafx.beans.property.{IntegerProperty, ObjectProperty}
 import scalafx.scene.Scene
 import scalafx.scene.paint.Color
-import scalafx.scene.shape.Rectangle
 import scalafx.scene.input.KeyCode
 import scalafx.scene.layout.Pane
-import scalafx.scene.Node
 
 // TODO; make this pure with cats IO
 object Main extends JFXApp3 {
@@ -24,6 +22,7 @@ object Main extends JFXApp3 {
   override def start(): Unit = {
     val board: Board = Board()
     val player: Player = Player()
+    // TODO: auto generate enemies for the level
     val minion: Minion = Minion(x = 100, y = 100)
     val boss: Boss = Boss(x = 300, y = 100)
     val enemies: List[Enemy] = List(boss, minion)
