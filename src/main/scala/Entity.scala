@@ -12,10 +12,8 @@ trait Entity {
   val bottomHitbox: Double = y + height
   val topHitbox: Double = y
 
-  def move(direction: Int): Entity
-
   // TODO: should use <=/>= here or just </> ???
-  def collisionWith(that: Entity): Boolean = {
+  def collidesWith(that: Entity): Boolean = {
     val horizontalOverlap =
       this.leftHitbox < that.rightHitbox && this.rightHitbox > that.leftHitbox
     val verticalOverlap =

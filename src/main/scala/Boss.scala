@@ -9,17 +9,5 @@ case class Boss(
     resource: String = "Orange",
     bullets: List[Bullet] = Nil
 ) extends Enemy {
-  override def move(direction: Int): Boss = {
-    direction match {
-      case 1 =>
-        Boss(x, y - speed, width, height, speed, resource, bullets)
-      case 2 =>
-        Boss(x, y + speed, width, height, speed, resource, bullets)
-      case 3 =>
-        Boss(x - speed, y, width, height, speed, resource, bullets)
-      case 4 =>
-        Boss(x + speed, y, width, height, speed, resource, bullets)
-      case _ => this
-    }
-  }
+  override def action(): Boss = this
 }

@@ -8,13 +8,8 @@ case class Bullet(
     speed: Double = 20,
     resource: String = "Blue"
 ) extends Projectile {
-  override def move(direction: Int): Entity = {
-    direction match {
-      case 1 => Bullet(x, y - speed, width, height, speed, resource)
-      case 2 => Bullet(x, y + speed, width, height, speed, resource)
-      case 3 => Bullet(x - speed, y, width, height, speed, resource)
-      case 4 => Bullet(x + speed, y, width, height, speed, resource)
-      case _ => this
-    }
+  override def move(): Option[Bullet] = {
+    val updatedY: Double = y - speed
+    if (updatedY > 0) Some(Bullet(x, updatedY)) else None
   }
 }

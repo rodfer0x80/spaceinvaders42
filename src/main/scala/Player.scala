@@ -9,8 +9,8 @@ case class Player(
     resource: String = "/player.png",
     bullets: List[Bullet] = Nil
 ) extends Spaceship {
-  override def move(direction: Int): Player = {
-    direction match {
+  override def action(code: Int): Player = {
+    code match {
       case 1 =>
         Player(x, y - speed, width, height, speed, resource, bullets)
       case 2 =>
@@ -19,13 +19,25 @@ case class Player(
         Player(x - speed, y, width, height, speed, resource, bullets)
       case 4 =>
         Player(x + speed, y, width, height, speed, resource, bullets)
+      case 5 =>
+        Player(
+          x,
+          y,
+          width,
+          height,
+          speed,
+          resource,
+          Bullet(x + width / 2, y) :: bullets
+        )
       case _ => this
     }
   }
 
-//  def update(updatedBullets: List[Bullet]) = Player(this.x, this.y, this.width, this.height, this.speed, this.resource, updatedBullets)
-//
-//  def moveAndUpdate(direction: Int, updatedBullets: List[Bullet]): Player = {
-//    this.move(direction = direction).update(updatedBullets = updatedBullets)
-// }
+  def updateBullets(): List[Bullet] = {
+    bullets
+      .map(_.move())
+      .collect {
+        case Some(bullet) => bullet
+      }
+  }
 }
