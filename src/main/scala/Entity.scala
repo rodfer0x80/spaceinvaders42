@@ -1,24 +1,31 @@
 package spaceinvaders42
 
 trait Entity {
-  val x: Double
-  val y: Double
-  val width: Double
-  val height: Double
-  val speed: Double
+  val x: Int
+  val y: Int
+  val width: Int
+  val height: Int
+  val speed: Int
 
-  val rightHitbox: Double = x + width
-  val leftHitbox: Double = x
-  val bottomHitbox: Double = y + height
-  val topHitbox: Double = y
+  val rightHitbox: Int = x + width
+  val leftHitbox: Int = x
+  val bottomHitbox: Int = y + height
+  val topHitbox: Int = y
 
   // TODO: should use <=/>= here or just </> ???
   def collidesWith(that: Entity): Boolean = {
     val horizontalOverlap =
-      this.leftHitbox < that.rightHitbox && this.rightHitbox > that.leftHitbox
+      this.leftHitbox <= that.rightHitbox && this.rightHitbox >= that.leftHitbox
     val verticalOverlap =
-      this.topHitbox < that.bottomHitbox && this.bottomHitbox > that.topHitbox
+      this.topHitbox <= that.bottomHitbox && this.bottomHitbox >= that.topHitbox
     horizontalOverlap && verticalOverlap
+  }
+
+  def collidesWithBorder(border: Border): Boolean = {
+    this.collidesWith(border.right) ||
+    this.collidesWith(border.left) ||
+    this.collidesWith(border.top) ||
+    this.collidesWith(border.bottom)
   }
 
 }

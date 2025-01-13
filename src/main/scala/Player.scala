@@ -1,11 +1,11 @@
 package spaceinvaders42
 
 case class Player(
-    x: Double = 200,
-    y: Double = 200,
-    width: Double = 50,
-    height: Double = 100,
-    speed: Double = 25,
+    x: Int = 500,
+    y: Int = 900,
+    width: Int = 50,
+    height: Int = 100,
+    speed: Int = 25,
     resource: String = "/player.png",
     bullets: List[Bullet] = Nil
 ) extends Spaceship {
@@ -33,11 +33,4 @@ case class Player(
     }
   }
 
-  def updateBullets(): List[Bullet] = {
-    bullets
-      .map(_.move())
-      .collect { case Some(bullet) =>
-        bullet
-      }
-  }
 }

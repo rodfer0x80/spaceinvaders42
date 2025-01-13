@@ -2,22 +2,125 @@ package spaceinvaders42
 
 import scalafx.scene.Node
 
-case class State(board: Board, player: Player, enemies: List[Enemy]) {
-  def update(playerActionCode: Int): State = {
-    // Win condition
-    if (enemies.isEmpty) {
-      println("Victory")
-      System.exit(0)
-    }
+// stage == 1 => initial stage, minions
+// stage == 2 => final stage, boss
 
-    val collisionCheck: CollisionCheck = CollisionCheck()
+case class State(
+    board: Board,
+    player: Player,
+    enemies: List[Enemy],
+    stage: Int
+) {
+  def render: List[Node] = {
+    val boardView = board.render()
+    val playerView = player.render()
+    val playerBulletsView = player.bullets.map { bullet =>
+      bullet.render()
+    }
+    val playerViews = playerView :: playerBulletsView
+    val enemiesViews = enemies.flatMap { enemy =>
+      val enemyView = enemy.render()
+      val enemyBulletsView = enemy.bullets.map { bullet =>
+        bullet.render()
+      }
+      enemyView :: enemyBulletsView
+    }
+    boardView :: playerViews ::: enemiesViews
+  }
+
+  def playerCollidesWithEnemy(
+      player: Player,
+      enemies: List[Enemy]
+  ): Boolean = {
+    enemies.exists(enemy => player.collidesWith(enemy))
+  }
+
+  def playerCollidesWithBorder(
+      player: Player,
+      board: Board
+  ): Boolean = {
+    player.x <= 0 ||
+    player.x >= board.width - player.width ||
+    player.y <= 0 ||
+    player.y >= board.height - player.height
+  }
+
+  def playerBulletCollidesWithEnemy(
+      playerBullet: Bullet,
+      enemies: List[Enemy]
+  ): Boolean = {
+    enemies.exists { enemy =>
+      playerBullet.collidesWith(enemy)
+    }
+  }
+
+  def playerBulletsCollideWithEnemy(
+      playerBullets: List[Bullet],
+      enemy: Enemy
+  ): Boolean = {
+    playerBullets.exists { playerBullet =>
+      playerBullet.collidesWith(enemy)
+    }
+  }
+
+  def enemiesBulletsCollideWithPlayer(
+      player: Player,
+      enemies: List[Enemy]
+  ): Boolean = {
+    enemies.exists { enemy =>
+      enemy.bullets.exists { enemyBullet =>
+        enemyBullet.collidesWith(player)
+      }
+    }
+  }
+
+  def generateEnemies(board: Board): List[Enemy] = {
+    val tmpMinion: Minion = Minion(0, 0)
+    (for {
+      x <-
+        tmpMinion.width until (board.width / 5 - tmpMinion.width) by (tmpMinion.width * 2)
+      y <-
+        tmpMinion.height until (board.height / 5 - tmpMinion.height) by (tmpMinion.height * 2)
+    } yield Minion(x, y)).toList // .reverse
+  }
+
+  def generateBoss(board: Board): List[Enemy] = {
+    val tmpBoss: Boss = Boss(0, 0)
+    val boss: Boss = Boss(board.width / 2 - tmpBoss.width, tmpBoss.height)
+    List(boss)
+  }
+
+  def update(playerActionCode: Int): State = {
+    // Stage update
+    // Stage 0: game starts
+    val (updatedStage, updatedEnemiesStage) = stage match {
+      // Stage 1: generate minions
+      case 0 if enemies.isEmpty =>
+        val newEnemies = generateEnemies(board)
+        (1, newEnemies)
+      case 1 if enemies.isEmpty =>
+        // Stage 2: generate boss
+        val newEnemies = generateBoss(board)
+        (2, newEnemies)
+      case 2 if enemies.isEmpty =>
+        // Final stage: win
+        println("Victory")
+        System.exit(0)
+        (2, enemies)
+      case _ =>
+        (stage, enemies)
+    }
+    // Refresh state after transitioning a stage
+    if (updatedStage != stage) {
+      return State(board, player, updatedEnemiesStage, updatedStage)
+    }
 
     // Calculate player action
     val playerAfterAction: Player = player.action(playerActionCode)
 
     // Calculate player's bullets movement
     val playerBulletsMovementUpdated: List[Bullet] =
-      playerAfterAction.updateBullets()
+      playerAfterAction.updateBullets(board)
 
     // TODO: Calculate enemies' bullets movement
     val enemiesBulletsMovementUpdated: List[Bullet] = Nil
@@ -36,14 +139,14 @@ case class State(board: Board, player: Player, enemies: List[Enemy]) {
     val updatedEnemies: List[Enemy] =
       enemiesMovementUpdated.collect {
         case minion
-            if !collisionCheck.playerBulletsCollideWithEnemy(
+            if !playerBulletsCollideWithEnemy(
               playerBulletsMovementUpdated,
               minion
             ) =>
           minion
         // TODO: bosses have more hitpoints
         case boss
-            if !collisionCheck.playerBulletsCollideWithEnemy(
+            if !playerBulletsCollideWithEnemy(
               playerBulletsMovementUpdated,
               boss
             ) =>
@@ -54,7 +157,7 @@ case class State(board: Board, player: Player, enemies: List[Enemy]) {
     val updatedPlayerBullets: List[Bullet] =
       playerBulletsMovementUpdated.collect {
         case playerBullet
-            if !collisionCheck.playerBulletCollidesWithEnemy(
+            if !playerBulletCollidesWithEnemy(
               playerBullet,
               enemiesMovementUpdated
             ) =>
@@ -65,7 +168,7 @@ case class State(board: Board, player: Player, enemies: List[Enemy]) {
     val updatedPlayer: Player = {
       // If player hits an enemy the player loses
       if (
-        collisionCheck.playerCollidesWithEnemy(
+        playerCollidesWithEnemy(
           playerMovementUpdated,
           enemiesMovementUpdated
         )
@@ -76,7 +179,7 @@ case class State(board: Board, player: Player, enemies: List[Enemy]) {
       }
       // If player is hit by an enemy bullet player loses
       else if (
-        collisionCheck.enemiesBulletsCollideWithPlayer(
+        enemiesBulletsCollideWithPlayer(
           playerMovementUpdated,
           enemiesMovementUpdated
         )
@@ -86,9 +189,7 @@ case class State(board: Board, player: Player, enemies: List[Enemy]) {
         Player()
       }
       // If player hits a border don't allow further movement towards it
-      else if (
-        collisionCheck.playerCollidesWithBorder(playerMovementUpdated, board)
-      )
+      else if (playerCollidesWithBorder(playerMovementUpdated, board))
         Player(x = player.x, y = player.y, bullets = updatedPlayerBullets)
       else
         Player(
@@ -97,23 +198,6 @@ case class State(board: Board, player: Player, enemies: List[Enemy]) {
           bullets = updatedPlayerBullets
         )
     }
-    State(board, updatedPlayer, updatedEnemies)
-  }
-
-  def render: List[Node] = {
-    val boardView = board.render()
-    val playerView = player.render()
-    val playerBulletsView = player.bullets.map { bullet =>
-      bullet.render()
-    }
-    val playerViews = playerView :: playerBulletsView
-    val enemiesViews = enemies.flatMap { enemy =>
-      val enemyView = enemy.render()
-      val enemyBulletsView = enemy.bullets.map { bullet =>
-        bullet.render()
-      }
-      enemyView :: enemyBulletsView
-    }
-    boardView :: playerViews ::: enemiesViews
+    State(board, updatedPlayer, updatedEnemies, updatedStage)
   }
 }

@@ -7,16 +7,16 @@ import scalafx.scene.shape.Rectangle
 import scalafx.scene.Node
 
 trait View {
-  val x: Double
-  val y: Double
-  val width: Double
-  val height: Double
+  val x: Int
+  val y: Int
+  val width: Int
+  val height: Int
   val resource: String
 
-  private val viewX: Double = x
-  private val viewY: Double = y
-  private val viewWidth: Double = width
-  private val viewHeight: Double = height
+  private val viewX: Int = x
+  private val viewY: Int = y
+  private val viewWidth: Int = width
+  private val viewHeight: Int = height
 
   def render(): Node = {
     if (isColor(resource)) {

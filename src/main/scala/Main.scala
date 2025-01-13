@@ -21,12 +21,9 @@ object Main extends JFXApp3 {
   override def start(): Unit = {
     val board: Board = Board()
     val player: Player = Player()
-    // TODO: auto generate enemies for the level
-    val minion: Minion = Minion(x = 100, y = 100)
-    val boss: Boss = Boss(x = 300, y = 100)
-    val enemies: List[Enemy] = List(boss, minion)
+    val enemies: List[Enemy] = List()
 
-    val state = ObjectProperty(State(board, player, enemies))
+    val state = ObjectProperty(State(board, player, enemies, 0))
     val frame = IntegerProperty(0)
     val distance = IntegerProperty(0) // Player starts standing still
 
