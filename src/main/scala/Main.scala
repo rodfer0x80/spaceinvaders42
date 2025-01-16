@@ -3,20 +3,47 @@ package spaceinvaders42
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+import javax.sound.sampled._
+
 import scalafx.Includes.*
 import scalafx.application.{JFXApp3, Platform}
 import scalafx.beans.property.{IntegerProperty, ObjectProperty}
-import scalafx.scene.Scene
+import scalafx.scene.{Scene}
+import scalafx.scene.media.{Media, MediaPlayer}
 import scalafx.scene.input.KeyCode
 import scalafx.scene.layout.Pane
+import scalafx.scene.media.AudioClip
 
-// TODO; make this pure with cats IO
+// TODO: make this pure with cats IO
 object Main extends JFXApp3 {
-  private def worldLoop(update: () => Unit): Unit =
+  def worldLoop(update: () => Unit): Unit =
     Future {
       update()
       Thread.sleep(1000 / 25 * 2) // Run program at 25 fps
     }.flatMap(_ => Future(worldLoop(update)))
+  
+  
+  def playAudio(): Unit = {
+    try {
+      val audioUrl = getClass.getResource("/background.wav")
+      require(audioUrl != null, "Failed to load background.wav!")
+      val audioIn = AudioSystem.getAudioInputStream(audioUrl)
+      val clip = AudioSystem.getClip()
+      clip.open(audioIn)
+      clip.loop(Clip.LOOP_CONTINUOUSLY)
+      new Thread(new Runnable {
+        def run(): Unit = {
+          while (true) {
+            Thread.sleep(1000)
+          }
+        }
+      }).start()
+    } catch {
+      case e: Exception =>
+        println(s"Error while initializing audio playback: ${e.getMessage}")
+        e.printStackTrace()
+    }
+  }
 
   override def start(): Unit = {
     val board: Board = Board()
@@ -38,6 +65,7 @@ object Main extends JFXApp3 {
       scene = new Scene {
         content = new Pane {
           children = state.value.render
+          playAudio()
         }
         onKeyPressed = key =>
           key.code match {
