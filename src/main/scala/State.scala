@@ -73,7 +73,7 @@ case class State(
     List(boss)
   }
 
-  def update(playerActionCode: Int): State = {
+  def update(input: Int): State = {
     // Stage update
     // Stage 0: game starts
     val (updatedStage, updatedEnemiesStage) = stage match {
@@ -99,7 +99,7 @@ case class State(
     }
 
     // Calculate player action
-    val playerAfterAction: Player = player.action(playerActionCode)
+    val playerAfterAction: Player = player.action(input)
 
     // Calculate player's bullets movement
     val playerBulletsMovementUpdated: List[Bullet] =

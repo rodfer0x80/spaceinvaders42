@@ -5,7 +5,7 @@ import cats.effect.unsafe.implicits.global
 
 import javax.sound.sampled.{AudioSystem, Clip}
 
-object Sink {
+object Audio {
   sealed trait AudioError extends Exception
   case class ResourceNotFound(message: String) extends AudioError
   case class PlaybackError(message: String) extends AudioError
@@ -41,15 +41,12 @@ object Sink {
         clip.stop()
         clip.close()
       }
-
       Resource.make(acquire)(release).map(new ClipPlayer(_))
     }
   }
 
-  // High-level operations
   def playBackground: IO[Unit] = {
     val audioPath = AudioPath("/background.wav")
-
     Player.load(audioPath).use { player =>
       player.loop >>
         IO.never
@@ -73,21 +70,26 @@ object Sink {
   }
 }
 
-object Audio {
-  private var audioFiber: Option[FiberIO[Unit]] = None
+object AudioControl {
+  var audioFiber: Option[FiberIO[Unit]] = None
 
   def startBackgroundMusic(): Unit = {
     audioFiber.foreach(_.cancel.unsafeRunSync())
-    val fiber = Sink.playBackground
+    val fiber = Audio.playBackground
       .onCancel(IO.println("Background music stopped"))
       .start.unsafeRunSync()
     audioFiber = Some(fiber)
   }
 
-  //    def playShootSound(): Unit = {
-  //      Audio.playSound(Audio.AudioPath("/shoot.wav"))
-  //        .unsafeRunAsyncAndForget()
-  //    }
+  def playShootSound(): Unit = {
+    Audio.playSound(Audio.AudioPath("/shoot.wav"))
+      .unsafeRunAsync(result =>
+        result.fold(
+          error => println(s"Error playing sound: $error"),
+          _ => ()
+        )
+      )
+  }
 
   def shutdown(): Unit = {
     audioFiber.foreach(_.cancel.unsafeRunSync())
