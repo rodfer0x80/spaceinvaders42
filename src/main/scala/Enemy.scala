@@ -3,7 +3,7 @@ package spaceinvaders42
 abstract class Enemy extends Entity with View {
   val bullets: List[Bullet]
 
-  def action(): Enemy
+  def action(board: Board): Enemy
 
   def updateBullets(board: Board): List[Bullet] = {
     bullets

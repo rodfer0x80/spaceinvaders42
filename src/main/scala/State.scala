@@ -11,23 +11,6 @@ case class State(
     enemies: List[Enemy],
     stage: Int
 ) {
-  def render: List[Node] = {
-    val boardView = board.render()
-    val playerView = player.render()
-    val playerBulletsView = player.bullets.map { bullet =>
-      bullet.render()
-    }
-    val playerViews = playerView :: playerBulletsView
-    val enemiesViews = enemies.flatMap { enemy =>
-      val enemyView = enemy.render()
-      val enemyBulletsView = enemy.bullets.map { bullet =>
-        bullet.render()
-      }
-      enemyView :: enemyBulletsView
-    }
-    boardView :: playerViews ::: enemiesViews
-  }
-
   def playerCollidesWithEnemy(
       player: Player,
       enemies: List[Enemy]
@@ -133,7 +116,8 @@ case class State(
     )
 
     // TODO: Calculate enemies movement
-    val enemiesMovementUpdated = enemies
+    // val enemiesMovementUpdated = enemies
+    val enemiesMovementUpdated: List[Enemy] = enemies.map(_.action(board))
 
     // Calculate enemies collision with player bullets
     val updatedEnemies: List[Enemy] =
