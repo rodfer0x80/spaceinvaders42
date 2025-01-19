@@ -11,8 +11,9 @@ import scalafx.scene.layout.Pane
 
 // -- 
 // TODO:
-// should Audio be called from each class when needed
-// e.g. player shoots, boss spawns, board init, etc etc?
+// should Audio be called from each class when needed instead of Main?
+// e.g. player shoots, boss spawns, board init, etc etc
+// I kinda like the View extension instead of having a Render object or sth
 // --
 
 object Main extends JFXApp3 {
