@@ -3,11 +3,11 @@ package spaceinvaders42
 abstract class Enemy extends Entity with View {
   val bullets: List[Bullet]
 
-  def action(board: Board): Enemy
+  def action(): Enemy
 
-  def updateBullets(board: Board): List[Bullet] = {
+  def updateBullets(): List[Bullet] = {
     bullets
-      .map(_.move(board))
+      .map(_.move())
       .collect { case Some(bullet) =>
         bullet
       }

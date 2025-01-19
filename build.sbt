@@ -13,6 +13,8 @@ lazy val root = project
     libraryDependencies += "org.scalameta" %% "munit" % "1.0.0" % Test,
     // Cats
     libraryDependencies += "org.typelevel" %% "cats-effect" % "3.5.7",
+    // fs2
+    libraryDependencies += "co.fs2" %% "fs2-core" % "3.9.3",
     // Scalafx
     libraryDependencies += "org.scalafx" %% "scalafx" % "22.0.0-R33",
     libraryDependencies ++= {
@@ -27,5 +29,5 @@ lazy val root = project
         .map(m => "org.openjfx" % s"javafx-$m" % "17" classifier osName)
     },
     // Enable forking for JavaFX runtime
-    fork := true,
+    fork := true
   )

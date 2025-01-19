@@ -9,7 +9,6 @@ object Audio {
   sealed trait AudioError extends Exception
   case class ResourceNotFound(message: String) extends AudioError
   case class PlaybackError(message: String) extends AudioError
-
   case class AudioPath(value: String) extends AnyVal
 
   trait Player {
@@ -18,7 +17,7 @@ object Audio {
     def stop: IO[Unit]
   }
 
-  private class ClipPlayer(clip: Clip) extends Player {
+  class ClipPlayer(clip: Clip) extends Player {
     def play: IO[Unit] = IO(clip.start())
     def loop: IO[Unit] = IO(clip.loop(Clip.LOOP_CONTINUOUSLY))
     def stop: IO[Unit] = IO(clip.stop())
@@ -30,8 +29,11 @@ object Audio {
         url <- IO(getClass.getResource(path.value))
           .flatMap(opt =>
             Option(opt).fold(
-              IO.raiseError[java.net.URL](ResourceNotFound(s"Audio file not found: ${path.value}"))
-            )(IO.pure))
+              IO.raiseError[java.net.URL](
+                ResourceNotFound(s"Audio file not found: ${path.value}")
+              )
+            )(IO.pure)
+          )
         audioIn <- IO(AudioSystem.getAudioInputStream(url))
         clip <- IO(AudioSystem.getClip())
         _ <- IO(clip.open(audioIn))
@@ -47,26 +49,32 @@ object Audio {
 
   def playBackground: IO[Unit] = {
     val audioPath = AudioPath("/background.wav")
-    Player.load(audioPath).use { player =>
-      player.loop >>
-        IO.never
-    }.handleErrorWith {
-      case e: AudioError =>
-        IO.println(s"Audio playback error: ${e.getMessage}")
-      case e: Exception =>
-        IO.println(s"Unexpected error during audio playback: ${e.getMessage}")
-    }
+    Player
+      .load(audioPath)
+      .use { player =>
+        player.loop >>
+          IO.never
+      }
+      .handleErrorWith {
+        case e: AudioError =>
+          IO.println(s"Audio playback error: ${e.getMessage}")
+        case e: Exception =>
+          IO.println(s"Unexpected error during audio playback: ${e.getMessage}")
+      }
   }
 
   def playSound(soundPath: AudioPath): IO[Unit] = {
-    Player.load(soundPath).use { player =>
-      player.play
-    }.handleErrorWith {
-      case e: AudioError =>
-        IO.println(s"Sound effect error: ${e.getMessage}")
-      case e: Exception =>
-        IO.println(s"Unexpected error playing sound: ${e.getMessage}")
-    }
+    Player
+      .load(soundPath)
+      .use { player =>
+        player.play
+      }
+      .handleErrorWith {
+        case e: AudioError =>
+          IO.println(s"Sound effect error: ${e.getMessage}")
+        case e: Exception =>
+          IO.println(s"Unexpected error playing sound: ${e.getMessage}")
+      }
   }
 }
 
@@ -77,12 +85,14 @@ object AudioControl {
     audioFiber.foreach(_.cancel.unsafeRunSync())
     val fiber = Audio.playBackground
       .onCancel(IO.println("Background music stopped"))
-      .start.unsafeRunSync()
+      .start
+      .unsafeRunSync()
     audioFiber = Some(fiber)
   }
 
   def playShootSound(): Unit = {
-    Audio.playSound(Audio.AudioPath("/shoot.wav"))
+    Audio
+      .playSound(Audio.AudioPath("/shoot.wav"))
       .unsafeRunAsync(result =>
         result.fold(
           error => println(s"Error playing sound: $error"),

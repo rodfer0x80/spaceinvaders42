@@ -2,11 +2,12 @@ package spaceinvaders42
 
 import scalafx.scene.Node
 
+// --
+// NOTE:
 // stage == 1 => initial stage, minions
 // stage == 2 => final stage, boss
-
+// --
 case class State(
-    board: Board,
     player: Player,
     enemies: List[Enemy],
     stage: Int
@@ -15,17 +16,7 @@ case class State(
       player: Player,
       enemies: List[Enemy]
   ): Boolean = {
-    enemies.exists(enemy => player.collidesWith(enemy))
-  }
-
-  def playerCollidesWithBorder(
-      player: Player,
-      board: Board
-  ): Boolean = {
-    player.x <= 0 ||
-    player.x >= board.width - player.width ||
-    player.y <= 0 ||
-    player.y >= board.height - player.height
+    enemies.exists(enemy => player `collidesWith` enemy)
   }
 
   def playerBulletCollidesWithEnemy(
@@ -33,7 +24,7 @@ case class State(
       enemies: List[Enemy]
   ): Boolean = {
     enemies.exists { enemy =>
-      playerBullet.collidesWith(enemy)
+      playerBullet `collidesWith` enemy
     }
   }
 
@@ -42,7 +33,7 @@ case class State(
       enemy: Enemy
   ): Boolean = {
     playerBullets.exists { playerBullet =>
-      playerBullet.collidesWith(enemy)
+      playerBullet `collidesWith` enemy
     }
   }
 
@@ -52,24 +43,24 @@ case class State(
   ): Boolean = {
     enemies.exists { enemy =>
       enemy.bullets.exists { enemyBullet =>
-        enemyBullet.collidesWith(player)
+        enemyBullet `collidesWith` player
       }
     }
   }
 
-  def generateEnemies(board: Board): List[Enemy] = {
+  def generateEnemies(): List[Enemy] = {
     val tmpMinion: Minion = Minion(0, 0)
     (for {
       x <-
-        tmpMinion.width until (board.width / 5 - tmpMinion.width) by (tmpMinion.width * 2)
+        tmpMinion.width until (Board.width / 5 - tmpMinion.width) by (tmpMinion.width * 2)
       y <-
-        tmpMinion.height until (board.height / 5 - tmpMinion.height) by (tmpMinion.height * 2)
+        tmpMinion.height until (Board.height / 5 - tmpMinion.height) by (tmpMinion.height * 2)
     } yield Minion(x, y)).toList // .reverse
   }
 
-  def generateBoss(board: Board): List[Enemy] = {
+  def generateBoss(): List[Enemy] = {
     val tmpBoss: Boss = Boss(0, 0)
-    val boss: Boss = Boss(board.width / 2 - tmpBoss.width, tmpBoss.height)
+    val boss: Boss = Boss(Board.width / 2 - tmpBoss.width, tmpBoss.height)
     List(boss)
   }
 
@@ -79,11 +70,11 @@ case class State(
     val (updatedStage, updatedEnemiesStage) = stage match {
       // Stage 1: generate minions
       case 0 if enemies.isEmpty =>
-        val newEnemies = generateEnemies(board)
+        val newEnemies = generateEnemies()
         (1, newEnemies)
       case 1 if enemies.isEmpty =>
         // Stage 2: generate boss
-        val newEnemies = generateBoss(board)
+        val newEnemies = generateBoss()
         (2, newEnemies)
       case 2 if enemies.isEmpty =>
         // Final stage: win
@@ -95,7 +86,7 @@ case class State(
     }
     // Refresh state after transitioning a stage
     if (updatedStage != stage) {
-      return State(board, player, updatedEnemiesStage, updatedStage)
+      return State(player, updatedEnemiesStage, updatedStage)
     }
 
     // Calculate player action
@@ -103,7 +94,7 @@ case class State(
 
     // Calculate player's bullets movement
     val playerBulletsMovementUpdated: List[Bullet] =
-      playerAfterAction.updateBullets(board)
+      playerAfterAction.updateBullets()
 
     // TODO: Calculate enemies' bullets movement
     val enemiesBulletsMovementUpdated: List[Bullet] = Nil
@@ -117,7 +108,7 @@ case class State(
 
     // TODO: Calculate enemies movement
     // val enemiesMovementUpdated = enemies
-    val enemiesMovementUpdated: List[Enemy] = enemies.map(_.action(board))
+    val enemiesMovementUpdated: List[Enemy] = enemies.map(_.action())
 
     // Calculate enemies collision with player bullets
     val updatedEnemies: List[Enemy] =
@@ -148,6 +139,10 @@ case class State(
           playerBullet
       }
 
+    // --
+    // TODO: clean this shit up,
+    // player logic for border collision = nonaction is already in the class
+    // --
     // Calculate player update
     val updatedPlayer: Player = {
       // If player hits an enemy the player loses
@@ -173,7 +168,7 @@ case class State(
         Player()
       }
       // If player hits a border don't allow further movement towards it
-      else if (playerCollidesWithBorder(playerMovementUpdated, board))
+      else if (playerMovementUpdated.collidesWithBorder())
         Player(x = player.x, y = player.y, bullets = updatedPlayerBullets)
       else
         Player(
@@ -182,6 +177,6 @@ case class State(
           bullets = updatedPlayerBullets
         )
     }
-    State(board, updatedPlayer, updatedEnemies, updatedStage)
+    State(updatedPlayer, updatedEnemies, updatedStage)
   }
 }

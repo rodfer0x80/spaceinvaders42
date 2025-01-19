@@ -9,11 +9,12 @@ case class Minion(
     resource: String = "Red",
     bullets: List[Bullet] = Nil
 ) extends Enemy {
-  override def action(board: Board): Minion = {
-    val movementHorizontalUpdatedMinion: Minion = Minion(x = x - speed, y = y, speed = speed)
+  override def action(): Minion = {
+    val movementHorizontalUpdatedMinion: Minion =
+      Minion(x = x - speed, y = y, speed = speed)
     val updatedMinion: Minion = {
-      if (movementHorizontalUpdatedMinion.collidesWithBorder(board.border)) {
-        Minion(x = x - speed, y = y + width + speed , speed = -speed)
+      if (movementHorizontalUpdatedMinion.collidesWithBorder()) {
+        Minion(x = x - speed, y = y + width + speed, speed = -speed)
       } else {
         movementHorizontalUpdatedMinion
       }

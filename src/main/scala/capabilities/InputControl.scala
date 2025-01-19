@@ -4,8 +4,12 @@ import scalafx.scene.input.KeyCode
 
 import scala.collection.mutable
 
-object KeyboardInput {
-  val pressedKeys = mutable.Set[KeyCode]() // TODO: is a Set the best DS for smoothness?
+object InputControl {
+  // --
+  // TODO:
+  // is a Set the best DS for smoothness? has some room for improvement
+  // --
+  val pressedKeys = mutable.Set[KeyCode]()
 
   def isPressed(keyCode: KeyCode): Boolean = pressedKeys.contains(keyCode)
   def keyPressed(keyCode: KeyCode): Unit = pressedKeys.add(keyCode)

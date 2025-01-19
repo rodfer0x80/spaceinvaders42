@@ -10,8 +10,14 @@ import scalafx.scene.input.KeyEvent
 import scalafx.scene.layout.Pane
 
 object Main extends JFXApp3 {
+  // --
+  // NOTE:
+  // should rendering logic be encapsulated inside each entity
+  // or in a single Render class?
+  // Render.render()
+  // --
   def render(state: State): List[Node] = {
-    val boardView = state.board.render()
+    val boardView = Board.render()
     val playerView = state.player.render()
     val playerBulletsView = state.player.bullets.map { bullet =>
       bullet.render()
@@ -26,6 +32,7 @@ object Main extends JFXApp3 {
     }
     boardView :: playerViews ::: enemiesViews
   }
+
   def worldLoop(update: () => Unit): Unit =
     Future {
       update()
@@ -33,30 +40,33 @@ object Main extends JFXApp3 {
     }.flatMap(_ => Future(worldLoop(update)))
 
   override def start(): Unit = {
-    val board: Board = Board() // TODO: make this an object and stop passing it around
     val player: Player = Player()
     val enemies: List[Enemy] = List()
-    val state = ObjectProperty(State(board, player, enemies, 0))
+    val state = ObjectProperty(State(player, enemies, 0))
     val frame = IntegerProperty(0)
     frame.onChange {
-      val input = KeyboardInput.getKey
+      val input = InputControl.getKey
       state.update(state.value.update(input))
     }
     stage = new JFXApp3.PrimaryStage {
-      width = board.width
-      height = board.height
+      width = Board.width
+      height = Board.height
       onCloseRequest = _ => {
         AudioControl.shutdown()
       }
       scene = new Scene {
         onKeyPressed = (ke: KeyEvent) => {
-          KeyboardInput.keyPressed(ke.code)
-//          if (ke.code == KeyCode.Space) {
-//            GameAudio.playShootSound()
-//          }
+          InputControl.keyPressed(ke.code)
+          // --
+          // TODO:
+          // add .wav file to resources
+          // --
+          // if (ke.code == KeyCode.Space) {
+          //  GameAudio.playShootSound()
+          // }
         }
         onKeyReleased = (ke: KeyEvent) => {
-          KeyboardInput.keyReleased(ke.code)
+          InputControl.keyReleased(ke.code)
         }
         content = new Pane {
           children = render(state.value)

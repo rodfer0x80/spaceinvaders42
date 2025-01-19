@@ -8,9 +8,9 @@ case class Bullet(
     speed: Int = 20,
     resource: String = "Blue"
 ) extends Projectile {
-  override def move(board: Board): Option[Bullet] = {
+  override def move(): Option[Bullet] = {
     val updatedBullet: Bullet = Bullet(x, y - speed)
-    if (!updatedBullet.collidesWithBorder(board.border)) Some(updatedBullet)
+    if (!updatedBullet.collidesWithBorder()) Some(updatedBullet)
     else None
   }
 }

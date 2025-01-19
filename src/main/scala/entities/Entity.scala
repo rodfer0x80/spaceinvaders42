@@ -12,7 +12,6 @@ trait Entity {
   val bottomHitbox: Int = y + height
   val topHitbox: Int = y
 
-  // TODO: should use <=/>= here or just </> ???
   def collidesWith(that: Entity): Boolean = {
     val horizontalOverlap =
       this.leftHitbox <= that.rightHitbox && this.rightHitbox >= that.leftHitbox
@@ -21,11 +20,11 @@ trait Entity {
     horizontalOverlap && verticalOverlap
   }
 
-  def collidesWithBorder(border: Border): Boolean = {
-    this.collidesWith(border.right) ||
-    this.collidesWith(border.left) ||
-    this.collidesWith(border.top) ||
-    this.collidesWith(border.bottom)
+  def collidesWithBorder(): Boolean = {
+    this.collidesWith(Board.border.right) ||
+    this.collidesWith(Board.border.left) ||
+    this.collidesWith(Board.border.top) ||
+    this.collidesWith(Board.border.bottom)
   }
 
 }
