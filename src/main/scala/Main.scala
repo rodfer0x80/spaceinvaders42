@@ -9,6 +9,12 @@ import scalafx.scene.{Node, Scene}
 import scalafx.scene.input.KeyEvent
 import scalafx.scene.layout.Pane
 
+// -- 
+// TODO:
+// should Audio be called from each class when needed
+// e.g. player shoots, boss spawns, board init, etc etc?
+// --
+
 object Main extends JFXApp3 {
   // --
   // NOTE:
