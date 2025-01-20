@@ -51,5 +51,7 @@ object Board extends View {
   val width: Int = 1000
   val height: Int = 1000
   val resource: String = "/board.png"
+  val sound: String = "/background.wav"
   val border: Border = Border(width, height)
+  SoundFX.playLoopSound(sound)
 }

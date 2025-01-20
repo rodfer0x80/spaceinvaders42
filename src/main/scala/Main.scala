@@ -9,7 +9,7 @@ import scalafx.scene.{Node, Scene}
 import scalafx.scene.input.KeyEvent
 import scalafx.scene.layout.Pane
 
-// -- 
+// --
 // TODO:
 // should Audio be called from each class when needed instead of Main?
 // e.g. player shoots, boss spawns, board init, etc etc
@@ -45,25 +45,25 @@ object Main extends JFXApp3 {
       update()
       Thread.sleep(1000 / 25 * 2) // Run program at 25 fps
     }.flatMap(_ => Future(worldLoop(update)))
-
+  
   override def start(): Unit = {
     val player: Player = Player()
     val enemies: List[Enemy] = List()
     val state = ObjectProperty(State(player, enemies, 0))
     val frame = IntegerProperty(0)
     frame.onChange {
-      val input = InputControl.getKey
+      val input = Input.getKey
       state.update(state.value.update(input))
     }
     stage = new JFXApp3.PrimaryStage {
       width = Board.width
       height = Board.height
       onCloseRequest = _ => {
-        AudioControl.shutdown()
+        SoundFX.shutdown()
       }
       scene = new Scene {
         onKeyPressed = (ke: KeyEvent) => {
-          InputControl.keyPressed(ke.code)
+          Input.keyPressed(ke.code)
           // --
           // TODO:
           // add .wav file to resources
@@ -73,11 +73,10 @@ object Main extends JFXApp3 {
           // }
         }
         onKeyReleased = (ke: KeyEvent) => {
-          InputControl.keyReleased(ke.code)
+          Input.keyReleased(ke.code)
         }
         content = new Pane {
           children = render(state.value)
-          AudioControl.startBackgroundMusic()
         }
         frame.onChange {
           Platform.runLater {

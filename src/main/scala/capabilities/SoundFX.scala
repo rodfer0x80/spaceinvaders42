@@ -47,8 +47,7 @@ object Audio {
     }
   }
 
-  def playBackground: IO[Unit] = {
-    val audioPath = AudioPath("/background.wav")
+  def playLoopAudio(audioPath: AudioPath): IO[Unit] = {
     Player
       .load(audioPath)
       .use { player =>
@@ -63,9 +62,9 @@ object Audio {
       }
   }
 
-  def playSound(soundPath: AudioPath): IO[Unit] = {
+  def playAudio(audioPath: AudioPath): IO[Unit] = {
     Player
-      .load(soundPath)
+      .load(audioPath)
       .use { player =>
         player.play
       }
@@ -78,21 +77,22 @@ object Audio {
   }
 }
 
-object AudioControl {
+object SoundFX {
   var audioFiber: Option[FiberIO[Unit]] = None
 
-  def startBackgroundMusic(): Unit = {
+  def playLoopSound(soundFile: String): Unit = {
     audioFiber.foreach(_.cancel.unsafeRunSync())
-    val fiber = Audio.playBackground
+    val fiber = Audio
+      .playLoopAudio(Audio.AudioPath(soundFile))
       .onCancel(IO.println("Background music stopped"))
       .start
       .unsafeRunSync()
     audioFiber = Some(fiber)
   }
 
-  def playShootSound(): Unit = {
+  def playSound(soundFile: String): Unit = {
     Audio
-      .playSound(Audio.AudioPath("/shoot.wav"))
+      .playAudio(Audio.AudioPath(soundFile))
       .unsafeRunAsync(result =>
         result.fold(
           error => println(s"Error playing sound: $error"),

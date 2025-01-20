@@ -4,7 +4,7 @@ import scalafx.scene.input.KeyCode
 
 import scala.collection.mutable
 
-object InputControl {
+object Input {
   // --
   // TODO:
   // is a Set the best DS for smoothness? has some room for improvement
@@ -21,6 +21,7 @@ object InputControl {
     else if (isPressed(KeyCode.A)) 3
     else if (isPressed(KeyCode.D)) 4
     else if (isPressed(KeyCode.Space)) 5
+    else if (isPressed(KeyCode.Enter)) 11
     else 0
   }
 }
