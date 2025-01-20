@@ -77,6 +77,12 @@ object Audio {
   }
 }
 
+// --
+// NOTE:
+// are this fibers leaking? 
+// do we need to setup Resource or Supervisor
+// and a background fiber to exit on done?
+// --
 object SoundFX {
   var audioFiber: Option[FiberIO[Unit]] = None
 
