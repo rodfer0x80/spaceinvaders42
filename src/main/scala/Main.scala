@@ -17,29 +17,6 @@ import scalafx.scene.layout.Pane
 // --
 
 object Main extends JFXApp3 {
-  // --
-  // NOTE:
-  // should rendering logic be encapsulated inside each entity
-  // or in a single Render class?
-  // Render.render()
-  // --
-  def render(state: State): List[Node] = {
-    val boardView = Board.render()
-    val playerView = state.player.render()
-    val playerBulletsView = state.player.bullets.map { bullet =>
-      bullet.render()
-    }
-    val playerViews = playerView :: playerBulletsView
-    val enemiesViews = state.enemies.flatMap { enemy =>
-      val enemyView = enemy.render()
-      val enemyBulletsView = enemy.bullets.map { bullet =>
-        bullet.render()
-      }
-      enemyView :: enemyBulletsView
-    }
-    boardView :: playerViews ::: enemiesViews
-  }
-
   def worldLoop(update: () => Unit): Unit =
     Future {
       update()
@@ -76,12 +53,12 @@ object Main extends JFXApp3 {
           Input.keyReleased(ke.code)
         }
         content = new Pane {
-          children = render(state.value)
+          children = ViewFX.render(state.value)
         }
         frame.onChange {
           Platform.runLater {
             content = new Pane {
-              children = render(state.value)
+              children = ViewFX.render(state.value)
             }
           }
         }
