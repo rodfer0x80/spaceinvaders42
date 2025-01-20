@@ -22,7 +22,7 @@ object Main extends JFXApp3 {
       update()
       Thread.sleep(1000 / 25 * 2) // Run program at 25 fps
     }.flatMap(_ => Future(worldLoop(update)))
-  
+
   override def start(): Unit = {
     val player: Player = Player()
     val enemies: List[Enemy] = List()

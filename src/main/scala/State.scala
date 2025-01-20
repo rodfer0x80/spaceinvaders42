@@ -68,10 +68,10 @@ case class State(
 
   def update(input: Int): State = {
     // Pause on "Enter"
-    if (input == 11) 
-      paused = !paused 
+    if (input == 11)
+      paused = !paused
     if (paused) return this
-    
+
     // Stage update
     // Stage 0: game starts
     val (updatedStage, updatedEnemiesStage) = stage match {
