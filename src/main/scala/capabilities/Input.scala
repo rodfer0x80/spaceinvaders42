@@ -21,6 +21,7 @@ object Input {
     else if (isPressed(KeyCode.A)) 3
     else if (isPressed(KeyCode.D)) 4
     else if (isPressed(KeyCode.Space)) 5
+    else if (isPressed(KeyCode.Escape)) 10
     else if (isPressed(KeyCode.Enter)) 11
     else 0
   }

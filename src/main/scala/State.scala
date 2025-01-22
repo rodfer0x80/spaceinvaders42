@@ -64,17 +64,8 @@ case class State(
     List(boss)
   }
 
-  var paused: Boolean = false
-
-  def update(input: Int): State = {
-    // Pause on "Enter"
-    if (input == 11)
-      paused = !paused
-    if (paused) return this
-
-    // Stage update
-    // Stage 0: game starts
-    val (updatedStage, updatedEnemiesStage) = stage match {
+  def updateStage(stage: Int, enemies: List[Enemy]): (Int, List[Enemy]) = {
+    stage match {
       // Stage 1: generate minions
       case 0 if enemies.isEmpty =>
         val newEnemies = generateEnemies()
@@ -91,6 +82,44 @@ case class State(
       case _ =>
         (stage, enemies)
     }
+  }
+
+  def updateEnemies(
+      enemiesMovementUpdated: List[Enemy],
+      playerBulletsMovementUpdated: List[Bullet]
+  ): List[Enemy] = {
+    enemiesMovementUpdated.collect {
+      case minion
+          if !playerBulletsCollideWithEnemy(
+            playerBulletsMovementUpdated,
+            minion
+          ) =>
+        minion
+      // TODO: bosses have more hitpoints
+      case boss
+          if !playerBulletsCollideWithEnemy(
+            playerBulletsMovementUpdated,
+            boss
+          ) =>
+        boss
+    }
+  }
+
+  var paused: Boolean = false
+
+  def update(input: Int): State = {
+    // Quit on "Esc"
+    if (input == 10)
+      println("Quitting ...")
+      System.exit(0)
+    // Pause on "Enter"
+    if (input == 11)
+      paused = !paused
+    if (paused) return this
+
+    // Stage update
+    // Stage 0: game starts
+    val (updatedStage, updatedEnemiesStage) = updateStage(stage, enemies)
     // Refresh state after transitioning a stage
     if (updatedStage != stage) {
       return State(player, updatedEnemiesStage, updatedStage)
@@ -119,21 +148,7 @@ case class State(
 
     // Calculate enemies collision with player bullets
     val updatedEnemies: List[Enemy] =
-      enemiesMovementUpdated.collect {
-        case minion
-            if !playerBulletsCollideWithEnemy(
-              playerBulletsMovementUpdated,
-              minion
-            ) =>
-          minion
-        // TODO: bosses have more hitpoints
-        case boss
-            if !playerBulletsCollideWithEnemy(
-              playerBulletsMovementUpdated,
-              boss
-            ) =>
-          boss
-      }
+      updateEnemies(enemiesMovementUpdated, playerBulletsMovementUpdated)
 
     // Calculate player bullets' collision with enemies
     val updatedPlayerBullets: List[Bullet] =
