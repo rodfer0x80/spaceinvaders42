@@ -10,6 +10,9 @@ case class Player(
     bullets: List[Bullet] = Nil
 ) extends Entity
     with View {
+
+  val shootSoundResource: String = "/shoot.wav"
+
   def action(code: Int): Player = {
     code match {
       case 1 =>
@@ -41,6 +44,7 @@ case class Player(
         else
           newPlayer
       case 5 =>
+        SoundFX.playSound(shootSoundResource)
         Player(
           x,
           y,

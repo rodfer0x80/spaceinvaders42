@@ -66,7 +66,11 @@ object Audio {
     Player
       .load(audioPath)
       .use { player =>
-        player.play
+        for {
+          _ <- IO.println("Sound loaded, starting playback...") >> player.play
+          _ <- IO.blocking(Thread.sleep(2000)) // Wait for the sound to finish
+          _ <- IO.println("Sound playback finished")
+        } yield ()
       }
       .handleErrorWith {
         case e: AudioError =>
@@ -77,12 +81,6 @@ object Audio {
   }
 }
 
-// --
-// NOTE:
-// are this fibers leaking? 
-// do we need to setup Resource or Supervisor
-// and a background fiber to exit on done?
-// --
 object SoundFX {
   var audioFiber: Option[FiberIO[Unit]] = None
 
