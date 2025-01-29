@@ -60,7 +60,7 @@ case class Player(
 
   def updateBullets(): List[Bullet] = {
     bullets
-      .map(_.move())
+      .map(_.moveUp())
       .collect { case Some(bullet) =>
         bullet
       }

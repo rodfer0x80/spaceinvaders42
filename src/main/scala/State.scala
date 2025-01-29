@@ -48,6 +48,43 @@ case class State(
     }
   }
 
+  def playerBulletCollideWithEnemyBullets(
+      player: Player,
+      enemies: List[Enemy]
+  ): (List[Bullet], List[Enemy]) = {
+    val (updatedPlayerBullets, updatedEnemies) =
+      enemies.foldLeft((player.bullets, List.empty[Enemy])) {
+        case ((playerBulletsAcc, enemiesAcc), enemy) =>
+          // Filter out colliding bullets between player and enemy
+          val (updatedPlayerBullets, updatedEnemyBullets) =
+            playerBulletsAcc.foldLeft((List.empty[Bullet], enemy.bullets)) {
+              case ((playerBullets, enemyBullets), playerBullet) =>
+                // Check if the player bullet collides with any enemy bullet
+                val collidingEnemyBullet = enemyBullets.find(enemyBullet =>
+                  playerBullet `collidesWith` enemyBullet
+                )
+                collidingEnemyBullet match {
+                  case Some(_) =>
+                    // Remove both player and enemy bullets if they collide
+                    (
+                      playerBullets,
+                      enemyBullets.filterNot(_ == collidingEnemyBullet.get)
+                    )
+                  case None =>
+                    // Keep the player bullet if no collision
+                    (playerBullet :: playerBullets, enemyBullets)
+                }
+            }
+          // Update the enemy with the filtered bullets
+          val updatedEnemy = enemy match {
+            case minion: Minion => minion.copy(bullets = updatedEnemyBullets)
+            case boss: Boss     => boss.copy(bullets = updatedEnemyBullets)
+          }
+          (updatedPlayerBullets.reverse, enemiesAcc :+ updatedEnemy)
+      }
+    (updatedPlayerBullets, updatedEnemies)
+  }
+
   def generateEnemies(): List[Enemy] = {
     val tmpMinion: Minion = Minion(0, 0)
     (for {
@@ -119,10 +156,10 @@ case class State(
 
     // Stage update
     // Stage 0: game starts
-    val (updatedStage, updatedEnemiesStage) = updateStage(stage, enemies)
+    val (finalUpdatedStage, updatedEnemiesStage) = updateStage(stage, enemies)
     // Refresh state after transitioning a stage
-    if (updatedStage != stage) {
-      return State(player, updatedEnemiesStage, updatedStage)
+    if (finalUpdatedStage != stage) {
+      return State(player, updatedEnemiesStage, finalUpdatedStage)
     }
 
     // Calculate player action
@@ -133,17 +170,9 @@ case class State(
       playerAfterAction.updateBullets()
 
     // TODO: Calculate enemies' bullets movement
-    val enemiesBulletsMovementUpdated: List[Bullet] = Nil
+    // val enemiesBulletsMovementUpdated: List[Bullet] = Nil
 
-    // Calculate player movement
-    val playerMovementUpdated: Player = Player(
-      x = playerAfterAction.x,
-      y = playerAfterAction.y,
-      bullets = playerBulletsMovementUpdated
-    )
-
-    // TODO: Calculate enemies movement
-    // val enemiesMovementUpdated = enemies
+    // Calculate enemies movement
     val enemiesMovementUpdated: List[Enemy] = enemies.map(_.action())
 
     // Calculate enemies collision with player bullets
@@ -161,17 +190,33 @@ case class State(
           playerBullet
       }
 
+    // Calculate player movement
+    val updatedPlayer: Player = Player(
+      x = playerAfterAction.x,
+      y = playerAfterAction.y,
+      bullets = updatedPlayerBullets
+    )
+
+    // Update enemies bullets collision with player bullets
+    val (
+      finalUpdatedPlayerBullets: List[Bullet],
+      finalUpdatedEnemies: List[Enemy]
+    ) =
+      playerBulletCollideWithEnemyBullets(updatedPlayer, updatedEnemies)
+    // val finalUpdatedEnemies = updatedEnemies
+    // val finalUpdatedPlayerBullets = updatedPlayerBullets
+
     // --
     // TODO: clean this shit up,
     // player logic for border collision = nonaction is already in the class
     // --
     // Calculate player update
-    val updatedPlayer: Player = {
+    val finalUpdatedPlayer: Player = {
       // If player hits an enemy the player loses
       if (
         playerCollidesWithEnemy(
-          playerMovementUpdated,
-          enemiesMovementUpdated
+          updatedPlayer,
+          updatedEnemies
         )
       ) {
         println("Defeat")
@@ -181,8 +226,8 @@ case class State(
       // If player is hit by an enemy bullet player loses
       else if (
         enemiesBulletsCollideWithPlayer(
-          playerMovementUpdated,
-          enemiesMovementUpdated
+          updatedPlayer,
+          updatedEnemies
         )
       ) {
         println("Defeat")
@@ -190,15 +235,15 @@ case class State(
         Player()
       }
       // If player hits a border don't allow further movement towards it
-      else if (playerMovementUpdated.collidesWithBorder())
-        Player(x = player.x, y = player.y, bullets = updatedPlayerBullets)
+      else if (updatedPlayer.collidesWithBorder())
+        Player(x = player.x, y = player.y, bullets = finalUpdatedPlayerBullets)
       else
         Player(
-          x = playerMovementUpdated.x,
-          y = playerMovementUpdated.y,
-          bullets = updatedPlayerBullets
+          x = updatedPlayer.x,
+          y = updatedPlayer.y,
+          bullets = finalUpdatedPlayerBullets
         )
     }
-    State(updatedPlayer, updatedEnemies, updatedStage)
+    State(finalUpdatedPlayer, finalUpdatedEnemies, finalUpdatedStage)
   }
 }

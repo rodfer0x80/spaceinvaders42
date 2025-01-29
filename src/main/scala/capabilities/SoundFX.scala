@@ -68,7 +68,7 @@ object Audio {
       .use { player =>
         for {
           _ <- IO.println("Sound loaded, starting playback...") >> player.play
-          _ <- IO.blocking(Thread.sleep(2000)) // Wait for the sound to finish
+          _ <- IO.blocking(Thread.sleep(1337)) // Wait for the sound to finish
           _ <- IO.println("Sound playback finished")
         } yield ()
       }

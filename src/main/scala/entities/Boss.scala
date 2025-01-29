@@ -8,31 +8,55 @@ case class Boss(
     width: Int = 100,
     height: Int = 100,
     speed: Int = 20,
-    resource: String = "Orange",
+    resource: String = "/boss.png",
     bullets: List[Bullet] = Nil
 ) extends Enemy {
   val rand: Random = new Random
 
+  override def copy(bulletsCopy: List[Bullet]): Boss = Boss(
+    x = this.x,
+    y = this.y,
+    width = this.width,
+    height = this.height,
+    speed = this.speed,
+    resource = this.resource,
+    bullets = bulletsCopy
+  )
+
   override def action(): Boss = {
     val xD = if (rand.nextBoolean()) 1 else -1
     val yD = if (rand.nextBoolean()) 1 else -1
+    val updatedBullets: List[Bullet] =
+      if (rand.nextBoolean())
+        Bullet(this.x + this.width / 2, this.y) :: updateBullets()
+      else updateBullets()
     val updatedBoss: Boss =
-      Boss(x = x + xD * speed, y = y + yD * speed, speed = speed)
+      Boss(
+        x = this.x + xD * this.speed,
+        y = y + yD * this.speed,
+        speed = this.speed,
+        bullets = updatedBullets
+      )
     val finalUpdatedBoss: Boss = {
       if (updatedBoss.collidesWithBorder()) {
         val updatedX =
           if (
             updatedBoss.collidesWith(Board.border.left) || updatedBoss
               .collidesWith(Board.border.right)
-          ) -xD * speed
-          else x + xD * speed
+          ) -xD * this.speed
+          else x + xD * this.speed
         val updatedY =
           if (
             updatedBoss.collidesWith(Board.border.top) || updatedBoss
               .collidesWith(Board.border.bottom)
-          ) -yD * speed
-          else y + yD * speed
-        Boss(x = updatedX, y = updatedY, speed = -speed)
+          ) -yD * this.speed
+          else y + yD * this.speed
+        Boss(
+          x = updatedX,
+          y = updatedY,
+          speed = -this.speed,
+          bullets = updatedBullets
+        )
       } else {
         updatedBoss
       }

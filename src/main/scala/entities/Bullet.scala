@@ -6,10 +6,15 @@ case class Bullet(
     width: Int = 5,
     height: Int = 15,
     speed: Int = 20,
-    resource: String = "Blue"
+    resource: String = "Pink"
 ) extends Projectile {
-  override def move(): Option[Bullet] = {
-    val updatedBullet: Bullet = Bullet(x, y - speed)
+  override def moveUp(): Option[Bullet] = {
+   val updatedBullet: Bullet = Bullet(x, y - speed)
+    if (!updatedBullet.collidesWithBorder()) Some(updatedBullet)
+    else None
+  }
+  override def moveDown(): Option[Bullet] = {
+    val updatedBullet: Bullet = Bullet(x, y + speed)
     if (!updatedBullet.collidesWithBorder()) Some(updatedBullet)
     else None
   }
