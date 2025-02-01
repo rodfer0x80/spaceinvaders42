@@ -144,15 +144,9 @@ case class State(
 
   var paused: Boolean = false
 
-  def update(input: Int): State = {
-    // Quit on "Esc"
-    if (input == 10)
-      println("Quitting ...")
-      System.exit(0)
-    // Pause on "Enter"
-    if (input == 11)
-      paused = !paused
-    if (paused) return this
+  def update(input: Int, paused: Boolean): State = {
+    if (paused || input == 10 || input == 11)
+      return State(player, enemies, stage)
 
     // Stage update
     // Stage 0: game starts

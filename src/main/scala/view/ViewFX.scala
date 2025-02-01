@@ -3,6 +3,10 @@ package spaceinvaders42
 import scalafx.scene.Node
 
 object ViewFX {
+  def renderMenu(): List[Node] = {
+    Menu.render()
+  }
+
   def render(state: State): List[Node] = {
     val boardView = Board.render()
     val playerView = state.player.render()

@@ -28,9 +28,17 @@ object Main extends JFXApp3 {
     val enemies: List[Enemy] = List()
     val state = ObjectProperty(State(player, enemies, 0))
     val frame = IntegerProperty(0)
+    var paused = true
     frame.onChange {
       val input = Input.getKey
-      state.update(state.value.update(input))
+      // Quit on "Esc"
+      if (input == 10)
+        println("Quitting ...")
+        System.exit(0)
+      // Pause on "Enter"
+      if (input == 11)
+        paused = !paused
+      state.update(state.value.update(input, paused))
     }
     stage = new JFXApp3.PrimaryStage {
       width = Board.width
@@ -41,24 +49,29 @@ object Main extends JFXApp3 {
       scene = new Scene {
         onKeyPressed = (ke: KeyEvent) => {
           Input.keyPressed(ke.code)
-          // --
-          // TODO:
-          // add .wav file to resources
-          // --
-          // if (ke.code == KeyCode.Space) {
-          //  GameAudio.playShootSound()
-          // }
         }
         onKeyReleased = (ke: KeyEvent) => {
           Input.keyReleased(ke.code)
         }
         content = new Pane {
-          children = ViewFX.render(state.value)
+          children = {
+            if (paused) {
+              ViewFX.renderMenu()
+            } else {
+              ViewFX.render(state.value)
+            }
+          }
         }
         frame.onChange {
           Platform.runLater {
             content = new Pane {
-              children = ViewFX.render(state.value)
+              children = {
+                if (paused) {
+                  ViewFX.renderMenu()
+                } else {
+                  ViewFX.render(state.value)
+                }
+              }
             }
           }
         }

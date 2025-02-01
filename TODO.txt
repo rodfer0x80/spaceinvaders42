@@ -1,0 +1,14 @@
+[ ] menu UI for pause
+[ ] game starts paused 
+[ ] shields at 50hp
+[ ] player 4hp shielding
+[ ] boss 99hp shielding
+[ ] minions 1hp shielding
+[ ] cleanup State.update into smaller function calls
+[ ] rename player bullets collision with enemy bullets to update...
+[ ] cleanup player bullets collision function collision with other like style  
+[ ] resize minion to 20x40?
+[ ] resize boss to 120x80?
+[ ] minion resource loading
+[ ] increase boss speed by 10?
+[ ] oldschool screen style gray shading rectangles sliding down
